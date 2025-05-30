@@ -116,18 +116,13 @@ def automate_desktop(
 ) -> Dict[str, Any]:
     """
     Main function to handle desktop automation.
-    
-    Args:
-        app_name: Name of the application to interact with
-        action: Action to perform ('open', 'close', 'type', 'press')
-        text: Text to type (required for 'type' action)
-        
-    Returns:
-        Dict containing the result of the automation
     """
     try:
         result = {}
-        
+
+        if not app_name:
+            return {"status": "error", "message": "Application name is required"}
+
         if action == 'open':
             result = open_application(app_name)
         elif action == 'close':
@@ -135,15 +130,19 @@ def automate_desktop(
         elif action == 'type':
             if not text:
                 return {"status": "error", "message": "Text is required for 'type' action"}
-            # First ensure the app is open
             open_result = open_application(app_name)
             if open_result.get("status") == "error":
                 return open_result
-            time.sleep(1)  # Wait for the app to be ready
+            time.sleep(1)
             result = type_text(text)
+        elif action == 'press':
+            if not text:
+                return {"status": "error", "message": "Key is required for 'press' action"}
+            result = press_key(text)
         else:
             return {"status": "error", "message": f"Unsupported action: {action}"}
-        
+
         return result
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": f"Unexpected backend error: {str(e)}"}
+

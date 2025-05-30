@@ -3,6 +3,8 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 
+
+
 const WebAutomation = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -25,10 +27,17 @@ const WebAutomation = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.post('http://localhost:8000/api/web-automate', values);
+        const response = await axios.post('http://localhost:8000/api/web-automate', {
+          url: values.url,
+          username: values.username || null,
+          password: values.password || null,
+          search_query: values.searchQuery || ''
+        });
+
         setResult(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.detail || 'An error occurred');
+        console.error("Backend error:", err);
+        setError(err.response?.data?.message || 'An error occurred');
       } finally {
         setIsLoading(false);
       }

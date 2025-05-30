@@ -24,6 +24,7 @@ def init_driver(headless: bool = True) -> WebDriver:
 def login(driver: WebDriver, url: str, username: str, password: str) -> Dict[str, Any]:
     """Handle website login."""
     try:
+        print(f"[INFO] Navigating to login page: {url}")
         driver.get(url)
         time.sleep(2)  # Wait for page to load
         
@@ -37,9 +38,10 @@ def login(driver: WebDriver, url: str, username: str, password: str) -> Dict[str
         login_button.click()
         
         time.sleep(2)  # Wait for login to complete
-        
+        print("[SUCCESS] Logged in successfully.")
         return {"status": "success", "message": "Successfully logged in"}
     except Exception as e:
+        print("[ERROR] Login failed:", str(e))
         return {"status": "error", "message": str(e)}
 
 def search(driver: WebDriver, query: str) -> Dict[str, Any]:
@@ -57,13 +59,14 @@ def search(driver: WebDriver, query: str) -> Dict[str, Any]:
         
         # Get search results (example)
         results = driver.find_elements(By.CSS_SELECTOR, ".search-result")
-        
+        print(f"[INFO] Found {len(results)} search results.")
         return {
             "status": "success",
             "message": f"Found {len(results)} search results",
             "results_count": len(results)
         }
     except Exception as e:
+        print("[ERROR] Search failed:", str(e))
         return {"status": "error", "message": str(e)}
 
 def automate_web_interaction(
@@ -86,17 +89,22 @@ def automate_web_interaction(
     """
     driver = None
     try:
-        driver = init_driver()
+        print("[INFO] Initializing browser...")
+        driver = init_driver(headless=False)
         result = {}
+
+        print(f"[INFO] Navigating to: {url}")
+        driver.get(url)
+        time.sleep(2)
         
         if username and password:
-            login_result = login(driver, url, username, password)
+            login_result = login(driver,url, username, password)
             result["login"] = login_result
             if login_result.get("status") == "error":
                 return result
         else:
-            driver.get(url)
-            time.sleep(2)  # Wait for page to load
+            print(f"[INFO] Opening public site: {url}")
+            
         
         if search_query:
             search_result = search(driver, search_query)
@@ -104,9 +112,10 @@ def automate_web_interaction(
         
         result["status"] = "success"
         result["message"] = "Web automation completed successfully"
-        
+        print("[SUCCESS] Automation completed.")
         return result
     except Exception as e:
+        print("Login failed:", str(e))
         return {"status": "error", "message": str(e)}
     finally:
         if driver:

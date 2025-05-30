@@ -3,8 +3,12 @@ import json
 import os
 
 # Test configuration
-BASE_URL = "http://localhost:8000/api"
-TEST_FILE_PATH = "test_document.txt"
+BASE_URL = "http://localhost:8000"
+API_URL = f"{BASE_URL}/api"  # Changed to a separate API base URL for clarity
+TEST_FILE_PATH = "test_document.txt"  # Defined a variable for test file path
+
+STATUS_KEY = "status"      # Added constants for keys/values used repeatedly
+SUCCESS_VALUE = "success"
 
 def print_success(message):
     print(f"✅ {message}")
@@ -15,13 +19,13 @@ def print_failure(message, response=None):
         print(f"Status code: {response.status_code}")
         try:
             print(f"Response: {response.json()}")
-        except:
-            print(f"Response: {response.text}")
+        except Exception as e:  # Added specific exception catch to clarify JSON parse errors
+            print(f"Response: {response.text} (Failed to parse JSON: {e})")
 
 def test_root_endpoint():
     """Test the root endpoint"""
     try:
-        response = requests.get("http://localhost:8000/")
+        response = requests.get(f"{BASE_URL}/", timeout=5)  # Added timeout to avoid hanging requests
         if response.status_code == 200:
             print_success("Root endpoint is working")
             return True
@@ -39,11 +43,11 @@ def test_web_automation():
             "url": "https://www.google.com",
             "search_query": "test automation"
         }
-        response = requests.post(f"{BASE_URL}/web-automate", json=data)
+        response = requests.post(f"{API_URL}/web-automate", json=data, timeout=5)  # Used API_URL and timeout
         
         if response.status_code == 200:
             result = response.json()
-            if result.get("status") == "success":
+            if result.get(STATUS_KEY) == SUCCESS_VALUE:  # Used constants for keys/values
                 print_success("Web automation test passed")
                 return True
             else:
@@ -59,16 +63,15 @@ def test_web_automation():
 def test_desktop_automation():
     """Test the desktop automation endpoint"""
     try:
-        # Test opening Notepad
         data = {
             "app_name": "notepad",
             "action": "open"
         }
-        response = requests.post(f"{BASE_URL}/desktop-automate", json=data)
+        response = requests.post(f"{API_URL}/desktop-automate", json=data, timeout=5)  # Used API_URL and timeout
         
         if response.status_code == 200:
             result = response.json()
-            if result.get("status") == "success":
+            if result.get(STATUS_KEY) == SUCCESS_VALUE:  # Used constants for keys/values
                 print_success("Desktop automation test passed (opening app)")
                 return True
             else:
@@ -85,21 +88,21 @@ def test_document_automation():
     """Test the document automation endpoint"""
     try:
         # Create a test file
-        with open("test_document.txt", "w") as f:
+        with open(TEST_FILE_PATH, "w") as f:  # Used TEST_FILE_PATH variable
             f.write("This is a test document for OCR testing.")
         
         # Test document text extraction
-        with open("test_document.txt", "rb") as f:
-            files = {"file": ("test_document.txt", f, "text/plain")}
-            response = requests.post(f"{BASE_URL}/document/extract-text", files=files)
+        with open(TEST_FILE_PATH, "rb") as f:  # Used TEST_FILE_PATH variable
+            files = {"file": (TEST_FILE_PATH, f, "text/plain")}  # Used TEST_FILE_PATH variable
+            response = requests.post(f"{API_URL}/document/extract-text", files=files, timeout=5)  # Added timeout
         
         # Clean up test file
-        if os.path.exists("test_document.txt"):
-            os.remove("test_document.txt")
+        if os.path.exists(TEST_FILE_PATH):  # Used TEST_FILE_PATH variable
+            os.remove(TEST_FILE_PATH)
         
         if response.status_code == 200:
             result = response.json()
-            if result.get("status") == "success":
+            if result.get(STATUS_KEY) == SUCCESS_VALUE:  # Used constants for keys/values
                 print_success("Document automation test passed")
                 return True
             else:
