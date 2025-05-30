@@ -58,23 +58,35 @@ const DocumentAutomation = () => {
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    if (!file) return;
+  const file = event.currentTarget.files?.[0];
+  if (!file) return;
 
-    // Set file for formik
-    formik.setFieldValue('file', file);
-    setSelectedFile(file);
+  // Set Formik touched so error appears immediately
+  formik.setTouched({ file: true });
+  formik.setFieldValue('file', file);
+  setSelectedFile(file);
 
-    // Create preview for images
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
+  // Image preview
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    setPreview(null);
+  }
+};
+
+// Function to download extracted text as a .txt file
+  const downloadTextAsFile = (text: string, filename: string) => {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -128,6 +140,10 @@ const DocumentAutomation = () => {
             <p className="mt-1 text-sm text-red-600">{formik.errors.file as string}</p>
           ) : null}
           
+          {selectedFile && !formik.errors.file && (
+            <p className="mt-2 text-sm text-green-600">File "{selectedFile.name}" uploaded successfully.</p>
+          )}
+
           {preview && (
             <div className="mt-4">
               <h3 className="text-sm font-medium text-gray-700">Preview</h3>
