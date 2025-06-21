@@ -117,6 +117,6 @@ def automate_web_interaction(
     except Exception as e:
         print("Login failed:", str(e))
         return {"status": "error", "message": str(e)}
-    finally:
-        if driver:
-            driver.quit()
+    # finally:
+    #     if driver:
+    #         driver.quit()
